@@ -1,22 +1,38 @@
 <template>
 	<div>
 		<v-toolbar
+			height="90"
 			app
 			tabs
+			color="#ed161f"
 		>
 			<v-toolbar-title>
-				Marvel Character Picker
+				<v-layout
+					row
+					align-center
+				>
+					<img
+						style="height: 90px"
+						src="../assets/1200px-MarvelLogo.svg.png"
+					>
+					<div style="color: #ed161f;font-size:90px; text-transform: uppercase; letter-spacing: -6px; font-family: 'Oswald', sans-serif; font-weight: bold; background-color:white;" class="mb-2 pr-2">
+						Character Picker
+					</div>
+				</v-layout>
 			</v-toolbar-title>
 			<template v-slot:extension>
 				<v-tabs
 					fixed-tabs
 					v-model="active"
+					color="#ed161f"
+					dark
 				>
+				    <v-tabs-slider color="white"></v-tabs-slider>
 					<v-tab>
-						Character Picker
+						All Characters
 					</v-tab>
 					<v-tab>
-						Fav Picker
+						Favorite Characters
 					</v-tab>
 					<v-tab>
 						Reading List

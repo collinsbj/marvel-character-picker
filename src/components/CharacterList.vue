@@ -1,10 +1,6 @@
 <template>
 	<div>
-		<div v-if="loading">
-			loading
-		</div>
-		<div v-if="!loading">
-			<v-container grid-list-md>
+			<v-container grid-list-md  v-if="!loading">
 				<v-layout
 					row
 					wrap
@@ -15,28 +11,21 @@
 						v-for="character in characterReturn"
 						:key="character.name"
 					>
+					<v-hover>
+
 						<v-card
+						      slot-scope="{ hover }"
 							max-height="500px"
 							style="overflow: hidden"
+							      :class="`elevation-${hover ? 12 : 2}`"
+								 @click="openCharacterDataDialog(character)"
 						>
-							<v-btn
-								icon
-								@click="openCharacterDataDialog(character)"
-							>
-								<v-icon>info</v-icon>
-							</v-btn>
-							<v-btn
-								icon
-								@click="addRemoveCharacterToFavorites(character)"
-							>
-								<v-icon :color="isFavorite(character)">
-									star
-								</v-icon>
-							</v-btn>
 							<v-img
 								height="250"
 								:src="`${character.thumbnail.path}.${character.thumbnail.extension}`"
 							/>
+							<div v-if="hover" style="background-color: rgba(237,22,31, .4); top: 0; left: 0; position: absolute; height: 250px; width: 100%;">
+								</div>
 							<v-card-text
 								class="title"
 								style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"
@@ -46,16 +35,38 @@
 							<v-card-text style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
 								{{ character.description === "" ? "No Description Available" : character.description }}
 							</v-card-text>
+							<v-card-actions>
+								<v-spacer></v-spacer>
+								<v-tooltip>
+									<template v-slot="activator">
+							<v-btn
+								icon
+								@click.stop="addRemoveCharacterToFavorites(character)"
+							>
+								<v-icon :color="isFavorite(character)">
+									star
+								</v-icon>
+							</v-btn>
+							</template>
+							<span>Add to favorites</span>
+							</v-tooltip>
+								</v-card-actions>
 						</v-card>
+					</v-hover>
 					</v-flex>
 				</v-layout>
 			</v-container>
-		</div>
 		<div
 			style="height: 10px;"
 			v-if="!viewHandlerLoading"
 			v-view="viewHandler"
 		/>
+		<v-container v-if="loading || viewHandlerLoading">
+				<v-layout column align-center>
+					Loading characters...
+			  <v-progress-linear :indeterminate="true"></v-progress-linear>
+			  </v-layout>
+				</v-container>
 		<v-dialog v-model="characterDataDialog">
 			<v-card>
 				<v-card-title class="display-1">
@@ -230,4 +241,8 @@ export default {
 </script>
 
 <style>
+.elevation-12 {
+	box-shadow: 0 7px 8px -4px rgba(0,0,0,.5),0 12px 17px 2px rgba(0,0,0,.44),0 5px 22px 4px rgba(0,0,0,.42)!important;
+	cursor: pointer;
+}
 </style>
