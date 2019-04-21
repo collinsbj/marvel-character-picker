@@ -1,6 +1,15 @@
 <template>
 	<v-container grid-list-md>
 		<v-layout
+			column
+			align-center
+			text-sm-center
+			v-if="readingList.length === 0"
+		>
+			You reading list is empty...<br>
+			Head over to 'All Characters' to add some comics to your list!
+		</v-layout>
+		<v-layout
 			row
 			wrap
 		>
@@ -10,42 +19,48 @@
 				v-for="comic in readingList"
 				:key="comic.title"
 			>
-				<v-card>
-					<v-btn
-						icon
+				<v-hover>
+					<v-card
+						slot-scope="{ hover }"
+						:class="`elevation-${hover ? 12 : 2}`"
 						@click="openComicDialog(comic)"
 					>
-						<v-icon>
-							info
-						</v-icon>
-					</v-btn>
-					<v-btn
-						icon
-						@click="addRemoveCFromReadingList(comic)"
-					>
-						<v-icon>
-							chrome_reader_mode
-						</v-icon>
-					</v-btn>
-					<v-img :src="`${comic.thumbnail.path}.${comic.thumbnail.extension}`" />
-					<v-card-title class="title">
-						{{ comic.title }}
-					</v-card-title>
-					<v-card-text>
-						{{ comic.description === "" ? "No Description Available" : comic.description }}
-					</v-card-text>
-					<v-card-text>
-						Characters:
-						<v-list>
-							<v-list-tile v-for="character in comic.characters.items">
-								{{ character.name }}
-							</v-list-tile>
-						</v-list>
-					</v-card-text>
-					<v-card-text>
-						Page Count: {{ comic.pageCount }}
-					</v-card-text>
-				</v-card>
+						<v-img
+							height="250"
+							:src="`${comic.thumbnail.path}.${comic.thumbnail.extension}`"
+						/>
+						<div
+							v-if="hover"
+							style="background-color: rgba(237,22,31, .4); top: 0; left: 0; position: absolute; height: 250px; width: 100%;"
+						/>
+						<v-card-text
+							class="title"
+							style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"
+						>
+							{{ comic.title }}
+						</v-card-text>
+						<v-card-text style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+							{{ comic.description === "" ? "No Description Available" : comic.description }}
+						</v-card-text>
+						<v-card-actions>
+							<v-spacer />
+							<v-tooltip top>
+								<template v-slot:activator="{ on }">
+									<v-btn
+										v-on="on"
+										icon
+										@click.stop="addRemoveFromReadingList(comic)"
+									>
+										<v-icon color="#ed161f">
+											list
+										</v-icon>
+									</v-btn>
+								</template>
+								<span>Remove from your reading list</span>
+							</v-tooltip>
+						</v-card-actions>
+					</v-card>
+				</v-hover>
 			</v-flex>
 		</v-layout>
 
@@ -62,13 +77,18 @@
 					<span class="ml-4">
 						{{ dialogData.title }}
 					</span>
+					<v-spacer />
+					<v-btn
+						icon
+						@click="comicDialog = false"
+					>
+						<v-icon>close</v-icon>
+					</v-btn>
 				</v-card-title>
 				<v-card-text>
 					{{ dialogData.description }}
 				</v-card-text>
-				<v-card-text class="title">
-					<span class="subheading">Page Count: </span>{{ dialogData.pageCount }}
-				</v-card-text>
+				<v-divider />
 				<v-card-text class="title">
 					<span class="subheading">Characters that appear in</span> {{ dialogData.title }}:
 					<v-list>
@@ -101,7 +121,7 @@
 													</v-icon>
 												</v-btn>
 											</template>
-											<span>Add to favorites list</span>
+											<span>{{ isFavorite(character) === "" ? "Add to your favorites list" : "Remove from your favorites list" }}</span>
 										</v-tooltip>
 									</v-list-tile-avatar>
 								</v-list-tile>
@@ -112,6 +132,9 @@
 							>
 						</v-tooltip>
 					</v-list>
+				</v-card-text>
+				<v-card-text class="title">
+					<span class="subheading">Page Count: </span>{{ dialogData.pageCount }}
 				</v-card-text>
 			</v-card>
 		</v-dialog>
@@ -168,6 +191,9 @@ export default {
 		},
 		isFavorite(character) {
 			return _.find(this.favoriteCharacters, character) === undefined ? "" : "yellow"
+		},
+		isOnReadingList(comic) {
+			return _.findIndex(this.readingList, item => item.title === comic.name) === -1 ? "" : "#ed161f"
 		}
 	}
 }

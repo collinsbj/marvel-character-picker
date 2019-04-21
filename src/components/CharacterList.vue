@@ -1,31 +1,45 @@
 <template>
 	<div>
-			<v-container grid-list-md  v-if="!loading">
-				<v-layout
-					row
-					wrap
+		<v-container v-if="listType === 'favorites' && favoriteCharacters.length === 0">
+			<v-layout
+				column
+				align-center
+				text-sm-center
+			>
+				You don't currently have any favorite Marvel characters...<br>
+				Head over to 'All Characters' to select some!
+			</v-layout>
+		</v-container>
+		<v-container
+			grid-list-md
+			v-if="!loading"
+		>
+			<v-layout
+				row
+				wrap
+			>
+				<v-flex
+					sm4
+					xs12
+					v-for="character in characterReturn"
+					:key="character.name"
 				>
-					<v-flex
-						sm4
-						xs12
-						v-for="character in characterReturn"
-						:key="character.name"
-					>
 					<v-hover>
-
 						<v-card
-						      slot-scope="{ hover }"
+							slot-scope="{ hover }"
 							max-height="500px"
 							style="overflow: hidden"
-							      :class="`elevation-${hover ? 12 : 2}`"
-								 @click="openCharacterDataDialog(character)"
+							:class="`elevation-${hover ? 12 : 2}`"
+							@click="openCharacterDataDialog(character)"
 						>
 							<v-img
 								height="250"
 								:src="`${character.thumbnail.path}.${character.thumbnail.extension}`"
 							/>
-							<div v-if="hover" style="background-color: rgba(237,22,31, .4); top: 0; left: 0; position: absolute; height: 250px; width: 100%;">
-								</div>
+							<div
+								v-if="hover"
+								style="background-color: rgba(237,22,31, .4); top: 0; left: 0; position: absolute; height: 250px; width: 100%;"
+							/>
 							<v-card-text
 								class="title"
 								style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"
@@ -36,37 +50,44 @@
 								{{ character.description === "" ? "No Description Available" : character.description }}
 							</v-card-text>
 							<v-card-actions>
-								<v-spacer></v-spacer>
-								<v-tooltip>
-									<template v-slot="activator">
-							<v-btn
-								icon
-								@click.stop="addRemoveCharacterToFavorites(character)"
-							>
-								<v-icon :color="isFavorite(character)">
-									star
-								</v-icon>
-							</v-btn>
-							</template>
-							<span>Add to favorites</span>
-							</v-tooltip>
-								</v-card-actions>
+								<v-spacer />
+								<v-tooltip top>
+									<template v-slot:activator="{ on }">
+										<v-btn
+											v-on="on"
+											icon
+											@click.stop="addRemoveCharacterToFavorites(character)"
+										>
+											<v-icon :color="isFavorite(character)">
+												star
+											</v-icon>
+										</v-btn>
+									</template>
+									<span>{{ isFavorite(character) === "" ? "Add to your favorites" : "Remove from your favorites" }}</span>
+								</v-tooltip>
+							</v-card-actions>
 						</v-card>
 					</v-hover>
-					</v-flex>
-				</v-layout>
-			</v-container>
+				</v-flex>
+			</v-layout>
+		</v-container>
 		<div
 			style="height: 10px;"
 			v-if="!viewHandlerLoading"
 			v-view="viewHandler"
 		/>
-		<v-container v-if="loading || viewHandlerLoading">
-				<v-layout column align-center>
-					Loading characters...
-			  <v-progress-linear :indeterminate="true"></v-progress-linear>
-			  </v-layout>
-				</v-container>
+		<v-container v-if="(loading || viewHandlerLoading) && listType === 'all'">
+			<v-layout
+				column
+				align-center
+			>
+				Loading characters...
+				<v-progress-linear
+					color="#ed161f"
+					:indeterminate="true"
+				/>
+			</v-layout>
+		</v-container>
 		<v-dialog v-model="characterDataDialog">
 			<v-card>
 				<v-card-title class="display-1">
@@ -80,12 +101,20 @@
 					<span class="ml-4">
 						{{ dialogData.name }}
 					</span>
+					<v-spacer />
+					<v-btn
+						icon
+						@click="characterDataDialog = false"
+					>
+						<v-icon>close</v-icon>
+					</v-btn>
 				</v-card-title>
 				<v-card-text>
 					{{ dialogData.description }}
 				</v-card-text>
+				<v-divider />
 				<v-card-text class="title">
-					{{ dialogData.name }} <span class="subheading">appeared in</span> {{ dialogData.comicData.available }} <span class="subheading">comics:</span>
+					{{ dialogData.name }} <span class="subheading">has appeared in</span> {{ dialogData.comicData.available }} <span class="subheading">comics:</span>
 					<v-list>
 						<v-tooltip
 							allow-overflow
@@ -112,11 +141,11 @@
 													@click="addRemoveFromReadingList(comic)"
 												>
 													<v-icon :color="isOnReadingList(comic)">
-														chrome_reader_mode
+														list
 													</v-icon>
 												</v-btn>
 											</template>
-											<span>Add to reading list</span>
+											<span>{{ isOnReadingList(comic) === "" ? "Add to your reading list" : "Remove from your reading list" }}</span>
 										</v-tooltip>
 									</v-list-tile-avatar>
 								</v-list-tile>
@@ -179,8 +208,8 @@ export default {
 		characterReturn() {
 			if (this.listType === "favorites") {
 				return this.favoriteCharacters.sort((a, b) => {
-					const nameA = a.name.toUpperCase() // ignore upper and lowercase
-					const nameB = b.name.toUpperCase() // ignore upper and lowercase
+					const nameA = a.name.toUpperCase()
+					const nameB = b.name.toUpperCase()
 					if (nameA < nameB) {
 						return -1
 					}
@@ -228,10 +257,10 @@ export default {
 			this.$store.dispatch("updateFavoriteCharactersList", character)
 		},
 		isFavorite(character) {
-			return _.find(this.favoriteCharacters, character) === undefined ? "" : "yellow"
+			return _.find(this.favoriteCharacters, character) === undefined ? "" : "#ed161f"
 		},
 		isOnReadingList(comic) {
-			return _.findIndex(this.readingList, item => item.title === comic.name) === -1 ? "" : "yellow"
+			return _.findIndex(this.readingList, item => item.title === comic.name) === -1 ? "" : "#ed161f"
 		},
 		addRemoveFromReadingList(comic) {
 			this.$store.dispatch("updateReadingList", comic)
