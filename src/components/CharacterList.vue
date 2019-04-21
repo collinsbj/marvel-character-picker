@@ -15,7 +15,10 @@
 						v-for="character in characterReturn"
 						:key="character.name"
 					>
-						<v-card>
+						<v-card
+							max-height="500px"
+							style="overflow: hidden"
+						>
 							<v-btn
 								icon
 								@click="openCharacterDataDialog(character)"
@@ -30,11 +33,17 @@
 									star
 								</v-icon>
 							</v-btn>
-							<v-img :src="`${character.thumbnail.path}.${character.thumbnail.extension}`" />
-							<v-card-title class="title">
+							<v-img
+								height="250"
+								:src="`${character.thumbnail.path}.${character.thumbnail.extension}`"
+							/>
+							<v-card-text
+								class="title"
+								style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"
+							>
 								{{ character.name }}
-							</v-card-title>
-							<v-card-text>
+							</v-card-text>
+							<v-card-text style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
 								{{ character.description === "" ? "No Description Available" : character.description }}
 							</v-card-text>
 						</v-card>
@@ -61,6 +70,9 @@
 						{{ dialogData.name }}
 					</span>
 				</v-card-title>
+				<v-card-text>
+					{{ dialogData.description }}
+				</v-card-text>
 				<v-card-text class="title">
 					{{ dialogData.name }} <span class="subheading">appeared in</span> {{ dialogData.comicData.available }} <span class="subheading">comics:</span>
 					<v-list>
@@ -81,9 +93,20 @@
 										{{ comic.name }}
 									</v-list-tile-title>
 									<v-list-tile-avatar>
-										<v-btn icon>
-											<v-icon>chrome_reader_mode</v-icon>
-										</v-btn>
+										<v-tooltip top>
+											<template v-slot:activator="{ on }">
+												<v-btn
+													icon
+													v-on="on"
+													@click="addRemoveFromReadingList(comic)"
+												>
+													<v-icon :color="isOnReadingList(comic)">
+														chrome_reader_mode
+													</v-icon>
+												</v-btn>
+											</template>
+											<span>Add to reading list</span>
+										</v-tooltip>
 									</v-list-tile-avatar>
 								</v-list-tile>
 							</template>
@@ -110,12 +133,12 @@ export default {
 	mixins: [apiCall],
 	data() {
 		return {
-			loadingComicData: false,
 			loading: true,
 			viewHandlerLoading: true,
 			characterDataDialog: false,
 			comicImgURL: "",
 			dialogData: {
+				description: "",
 				name: "",
 				imageURL: "",
 				comicData: {
@@ -139,6 +162,7 @@ export default {
 		...mapState({
 			allCharacters: state => state.allCharacters,
 			favoriteCharacters: state => state.favoriteCharacters,
+			readingList: state => state.readingList,
 			offset: state => state.offset
 		}),
 		characterReturn() {
@@ -162,12 +186,8 @@ export default {
 	},
 	methods: {
 		async getComicData(comic) {
-			this.loadingComicData = true
 			const comicData = await this.apiCall(comic.resourceURI)
-			console.log("COMIC", comicData)
 			this.comicImgURL = `${comicData.data.results[0].thumbnail.path}.${comicData.data.results[0].thumbnail.extension}`
-			this.loadingComicData = false
-			console.log("HIIHIHIH")
 		},
 		eraseComicData() {
 			this.comicImgURL = ""
@@ -183,6 +203,7 @@ export default {
 		},
 		openCharacterDataDialog(character) {
 			this.dialogData = {
+				description: character.description,
 				name: character.name,
 				imageURL: `${character.thumbnail.path}.${character.thumbnail.extension}`,
 				comicData: {
@@ -197,11 +218,16 @@ export default {
 		},
 		isFavorite(character) {
 			return _.find(this.favoriteCharacters, character) === undefined ? "" : "yellow"
+		},
+		isOnReadingList(comic) {
+			return _.findIndex(this.readingList, item => item.title === comic.name) === -1 ? "" : "yellow"
+		},
+		addRemoveFromReadingList(comic) {
+			this.$store.dispatch("updateReadingList", comic)
 		}
 	}
 }
 </script>
 
 <style>
-
 </style>

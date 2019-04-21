@@ -1,11 +1,10 @@
 import Vue from "vue"
-import './plugins/vuetify'
+import "./plugins/vuetify"
 import Vuetify from "vuetify"
 import checkView from "vue-check-view"
 import App from "./App.vue"
 import router from "./router"
 import store from "./store"
-import "./plugins/vuetify"
 import "vuetify/dist/vuetify.min.css"
 
 Vue.use(checkView)
