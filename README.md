@@ -12,9 +12,18 @@ On your Favorites List, you will see every character that you've selected as a f
 #### Reading List
 On the Reading List screen, you'll see every comic that was added to your reading list along with an image of the cover.  Clicking on the card will open a modal that gives you a description of the comic, the page count, and every character that appears in it, along with the ability to add those characters to your favorites list.
 
+#### Hosting
+MCP is hosted on Firebase at https://marvel-character-picker.firebaseapp.com.
+
 #### Technologies Used
 * Vue
 * Vuex
 * Marvel API
 * Vuetify
 * Chai
+* Firebase
+
+#### Future State
+* Add a backend to have persistent data
+* Add auth
+* Add ranking system to comics
