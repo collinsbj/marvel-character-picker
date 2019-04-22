@@ -14,6 +14,12 @@
 			grid-list-md
 			v-if="!loading"
 		>
+			<v-select
+				v-if="listType === 'favorites' && favoriteCharacters.length !== 0"
+				label="Sort By"
+				:items="['Name', 'Rank']"
+				v-model="sortingMethod"
+			/>
 			<v-layout
 				row
 				wrap
@@ -21,7 +27,7 @@
 				<v-flex
 					sm4
 					xs12
-					v-for="character in characterReturn"
+					v-for="character in charactersDisplay"
 					:key="character.name"
 				>
 					<v-hover>
@@ -30,26 +36,37 @@
 							max-height="500px"
 							style="overflow: hidden"
 							:class="`elevation-${hover ? 12 : 2}`"
-							@click="openCharacterDataDialog(character)"
 						>
-							<v-img
-								height="250"
-								:src="`${character.thumbnail.path}.${character.thumbnail.extension}`"
-							/>
-							<div
-								v-if="hover"
-								style="background-color: rgba(237,22,31, .4); top: 0; left: 0; position: absolute; height: 250px; width: 100%;"
-							/>
-							<v-card-text
-								class="title"
-								style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"
-							>
-								{{ character.name }}
-							</v-card-text>
-							<v-card-text style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
-								{{ character.description === "" ? "No Description Available" : character.description }}
-							</v-card-text>
+							<div @click="openCharacterDataDialog(character)">
+								<v-img
+									height="250"
+									:src="`${character.thumbnail.path}.${character.thumbnail.extension}`"
+								/>
+
+								<div
+									v-if="hover"
+									style="background-color: rgba(237,22,31, .4); top: 0; left: 0; position: absolute; height: 250px; width: 100%;"
+								/>
+								<v-card-text
+									class="title"
+									style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"
+								>
+									{{ character.name }}
+								</v-card-text>
+								<v-card-text style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+									{{ character.description === "" ? "No Description Available" : character.description }}
+								</v-card-text>
+							</div>
 							<v-card-actions>
+								<v-select
+									:value="character.rank"
+									v-if="listType === 'favorites'"
+									:items="numberOfFavoriteCharacters"
+									box
+									label="Rank"
+									style="width: 1px;"
+									@change="rankChange(character,$event)"
+								/>
 								<v-spacer />
 								<v-tooltip top>
 									<template v-slot:activator="{ on }">
@@ -150,7 +167,12 @@
 									</v-list-tile-avatar>
 								</v-list-tile>
 							</template>
+							<v-progress-circular
+								v-if="comicImgURL === ''"
+								:indeterminate="true"
+							/>
 							<img
+								v-else
 								style="max-height: 150px; max-width: 150px;"
 								:src="comicImgURL"
 							>
@@ -173,6 +195,7 @@ export default {
 	mixins: [apiCall],
 	data() {
 		return {
+			sortingMethod: "Rank",
 			loading: true,
 			viewHandlerLoading: true,
 			characterDataDialog: false,
@@ -205,7 +228,20 @@ export default {
 			readingList: state => state.readingList,
 			offset: state => state.offset
 		}),
-		characterReturn() {
+		charactersDisplay() {
+			if (this.listType === "favorites") {
+				if (this.sortingMethod === "Rank") {
+					return this.charactersByRank
+				} if (this.sortingMethod === "Name") {
+					return this.charactersByName
+				}
+			}
+			return this.allCharacters
+		},
+		numberOfFavoriteCharacters() {
+			return this.favoriteCharacters.map((item, index) => index + 1)
+		},
+		charactersByName() {
 			if (this.listType === "favorites") {
 				return this.favoriteCharacters.sort((a, b) => {
 					const nameA = a.name.toUpperCase()
@@ -217,14 +253,24 @@ export default {
 						return 1
 					}
 
-					// names must be equal
 					return 0
 				})
+			}
+			return this.allCharacters
+		},
+		charactersByRank() {
+			if (this.listType === "favorites") {
+				return this.favoriteCharacters.sort((a, b) => a.rank - b.rank)
 			}
 			return this.allCharacters
 		}
 	},
 	methods: {
+		rankChange(character, newRank) {
+			if (character.rank !== newRank) {
+				this.$store.dispatch("updateRanks", { characterName: character.name, oldRank: character.rank, newRank })
+			}
+		},
 		async getComicData(comic) {
 			const comicData = await this.apiCall(comic.resourceURI)
 			this.comicImgURL = `${comicData.data.results[0].thumbnail.path}.${comicData.data.results[0].thumbnail.extension}`

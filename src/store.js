@@ -24,9 +24,15 @@ export default new Vuex.Store({
 		},
 		updateFavoriteCharactersList(state, payload) {
 			if (_.find(state.favoriteCharacters, payload) === undefined) {
+				payload.rank = state.favoriteCharacters.length + 1
 				state.favoriteCharacters.push(payload)
 			} else {
 				state.favoriteCharacters.splice(_.findIndex(state.favoriteCharacters, payload), 1)
+				const localFavoriteCharacters = state.favoriteCharacters.sort((a, b) => a.rank - b.rank)
+				state.favoriteCharacters = localFavoriteCharacters.map((character, index) => {
+					character.rank = index + 1
+					return character
+				})
 			}
 		},
 		removeFromReadingList(state, payload) {
@@ -34,9 +40,35 @@ export default new Vuex.Store({
 		},
 		addToReadingList(state, payload) {
 			state.readingList.push(payload)
+		},
+		updateFavoriteCharacters(state, payload) {
+			state.favoriteCharacters = payload
 		}
 	},
 	actions: {
+		updateRanks({ commit, state }, payload) {
+			let newRanks = []
+			if (payload.oldRank > payload.newRank) {
+				newRanks = state.favoriteCharacters.map(character => {
+					if (character.rank < payload.oldRank && character.rank >= payload.newRank && character.name !== payload.characterName) {
+						character.rank++
+					} else if (character.name === payload.characterName) {
+						character.rank = payload.newRank
+					}
+					return character
+				})
+			} else {
+				newRanks = state.favoriteCharacters.map(character => {
+					if (character.rank > payload.oldRank && character.rank <= payload.newRank && character.name !== payload.characterName) {
+						character.rank--
+					} else if (character.name === payload.characterName) {
+						character.rank = payload.newRank
+					}
+					return character
+				})
+			}
+			commit("updateFavoriteCharacters", newRanks)
+		},
 		addToAllCharacters({ commit }, payload) {
 			commit("addToAllCharacters", payload)
 		},

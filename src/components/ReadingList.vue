@@ -126,7 +126,12 @@
 									</v-list-tile-avatar>
 								</v-list-tile>
 							</template>
+							<v-progress-circular
+								v-if="characterImgURL === ''"
+								:indeterminate="true"
+							/>
 							<img
+								v-else
 								style="max-height: 150px; max-width: 150px;"
 								:src="characterImgURL"
 							>
@@ -190,7 +195,7 @@ export default {
 			this.$store.dispatch("updateFavoriteCharactersList", character)
 		},
 		isFavorite(character) {
-			return _.find(this.favoriteCharacters, character) === undefined ? "" : "yellow"
+			return _.find(this.favoriteCharacters, character) === undefined ? "" : "#ed161f"
 		},
 		isOnReadingList(comic) {
 			return _.findIndex(this.readingList, item => item.title === comic.name) === -1 ? "" : "#ed161f"
