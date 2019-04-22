@@ -15,7 +15,10 @@
 						style="height: 90px"
 						src="../assets/1200px-MarvelLogo.svg.png"
 					>
-					<div style="color: #ed161f;font-size:90px; text-transform: uppercase; letter-spacing: -6px; font-family: 'Oswald', sans-serif; font-weight: bold; background-color:white;" class="mb-2 pr-2">
+					<div
+						style="color: #ed161f;font-size:90px; text-transform: uppercase; letter-spacing: -6px; font-family: 'Oswald', sans-serif; font-weight: bold; background-color:white;"
+						class="mb-2 pr-2"
+					>
 						Character Picker
 					</div>
 				</v-layout>
@@ -27,7 +30,7 @@
 					color="#ed161f"
 					dark
 				>
-				    <v-tabs-slider color="white"></v-tabs-slider>
+					<v-tabs-slider color="white" />
 					<v-tab>
 						All Characters
 					</v-tab>
