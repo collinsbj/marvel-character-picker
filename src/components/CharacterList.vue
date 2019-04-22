@@ -17,7 +17,7 @@
 			<v-select
 				v-if="listType === 'favorites' && favoriteCharacters.length !== 0"
 				label="Sort By"
-				:items="['Name', 'Rank']"
+				:items="['Name', 'Rank', 'Appearances']"
 				v-model="sortingMethod"
 			/>
 			<v-layout
@@ -234,6 +234,8 @@ export default {
 					return this.charactersByRank
 				} if (this.sortingMethod === "Name") {
 					return this.charactersByName
+				} if (this.sortingMethod === "Appearances") {
+					return this.charactersByAppearances
 				}
 			}
 			return this.allCharacters
@@ -242,27 +244,24 @@ export default {
 			return this.favoriteCharacters.map((item, index) => index + 1)
 		},
 		charactersByName() {
-			if (this.listType === "favorites") {
-				return this.favoriteCharacters.sort((a, b) => {
-					const nameA = a.name.toUpperCase()
-					const nameB = b.name.toUpperCase()
-					if (nameA < nameB) {
-						return -1
-					}
-					if (nameA > nameB) {
-						return 1
-					}
+			return this.favoriteCharacters.sort((a, b) => {
+				const nameA = a.name.toUpperCase()
+				const nameB = b.name.toUpperCase()
+				if (nameA < nameB) {
+					return -1
+				}
+				if (nameA > nameB) {
+					return 1
+				}
 
-					return 0
-				})
-			}
-			return this.allCharacters
+				return 0
+			})
 		},
 		charactersByRank() {
-			if (this.listType === "favorites") {
-				return this.favoriteCharacters.sort((a, b) => a.rank - b.rank)
-			}
-			return this.allCharacters
+			return this.favoriteCharacters.sort((a, b) => a.rank - b.rank)
+		},
+		charactersByAppearances() {
+			return this.favoriteCharacters.sort((a, b) => a.comics.available + b.comics.available)
 		}
 	},
 	methods: {
@@ -279,7 +278,7 @@ export default {
 			this.comicImgURL = ""
 		},
 		async viewHandler(event) {
-			if ((event.type === "progress" || event.type === "enter") && event.percentInView > 0) {
+			if ((event.type === "progress" || event.type === "enter") && event.percentInView > 0 && event.scrollValue > 0) {
 				this.viewHandlerLoading = true
 				const characters = await this.apiCall("http://gateway.marvel.com/v1/public/characters", this.offset)
 				await this.$store.dispatch("addToAllCharacters", characters.data.results)
