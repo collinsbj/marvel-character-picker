@@ -29,11 +29,11 @@ describe("Home", () => {
 		expect(localStore.state.offset).to.equal(20)
 	})
 	it("add character", () => {
-		localStore.commit("addToAllCharacters", [{ name: "Iron Man" }, { name: "Thor" }])
+		localStore.commit("addToAllCharactersList", [{ name: "Iron Man" }, { name: "Thor" }])
 		expect(localStore.state.allCharacters).to.deep.equal([{ name: "Iron Man" }, { name: "Thor" }])
 	})
 	it("updates all characters", () => {
-		localStore.commit("updateAllCharacters", [{ name: "Iron Man" }, { name: "Thor" }, { name: "Hulk" }])
+		localStore.commit("replaceAllCharactersList", [{ name: "Iron Man" }, { name: "Thor" }, { name: "Hulk" }])
 		expect(localStore.state.allCharacters).to.deep.equal([{ name: "Iron Man" }, { name: "Thor" }, { name: "Hulk" }])
 	})
 	it("adds to favorites list", () => {

@@ -1,8 +1,8 @@
 <template>
 	<v-container grid-list-md>
 		<v-layout
-			column
 			align-center
+			column
 			text-sm-center
 			v-if="readingList.length === 0"
 		>
@@ -14,24 +14,24 @@
 			wrap
 		>
 			<v-flex
-				sm4
-				xs12
-				v-for="comic in readingList"
 				:key="comic.title"
+				sm4
+				v-for="comic in readingList"
+				xs12
 			>
 				<v-hover>
 					<v-card
-						slot-scope="{ hover }"
 						:class="`elevation-${hover ? 12 : 2}`"
 						@click="openComicDialog(comic)"
+						slot-scope="{ hover }"
 					>
 						<v-img
 							height="250"
 							:src="`${comic.thumbnail.path}.${comic.thumbnail.extension}`"
 						/>
 						<div
-							v-if="hover"
 							style="background-color: rgba(237,22,31, .4); top: 0; left: 0; position: absolute; height: 250px; width: 100%;"
+							v-if="hover"
 						/>
 						<v-card-text
 							class="title"
@@ -47,9 +47,9 @@
 							<v-tooltip top>
 								<template v-slot:activator="{ on }">
 									<v-btn
-										v-on="on"
-										icon
 										@click.stop="addRemoveFromReadingList(comic)"
+										icon
+										v-on="on"
 									>
 										<v-icon color="#ed161f">
 											list
@@ -68,9 +68,9 @@
 			<v-card>
 				<v-card-title class="display-1">
 					<v-img
+						contain
 						max-height="80px"
 						max-width="80px"
-						contain
 						position="left"
 						:src="dialogData.imageURL"
 					/>
@@ -79,8 +79,8 @@
 					</span>
 					<v-spacer />
 					<v-btn
-						icon
 						@click="comicDialog = false"
+						icon
 					>
 						<v-icon>close</v-icon>
 					</v-btn>
@@ -94,16 +94,16 @@
 					<v-list>
 						<v-tooltip
 							allow-overflow
+							:key="character.name"
 							top
 							v-for="character in dialogData.characters"
-							:key="character.name"
 						>
 							<template v-slot:activator="{ on }">
 								<v-list-tile
+									@click=""
 									@mouseenter="getCharacterData(character)"
 									@mouseleave="eraseCharacterData"
 									v-on="on"
-									@click=""
 								>
 									<v-list-tile-title>
 										{{ character.name }}
@@ -127,13 +127,13 @@
 								</v-list-tile>
 							</template>
 							<v-progress-circular
-								v-if="characterImgURL === ''"
 								:indeterminate="true"
+								v-if="characterImgURL === ''"
 							/>
 							<img
-								v-else
-								style="max-height: 150px; max-width: 150px;"
 								:src="characterImgURL"
+								style="max-height: 150px; max-width: 150px;"
+								v-else
 							>
 						</v-tooltip>
 					</v-list>
@@ -147,17 +147,17 @@
 </template>
 
 <script>
-import { mapState } from "vuex"
-import { apiCall } from "@/mixins.js"
 import _ from "lodash"
+import { apiCall, favoritesList, readingList } from "@/mixins.js"
+import { mapState } from "vuex"
 
 export default {
 	name: "ReadingList",
-	mixins: [apiCall],
+	mixins: [apiCall, favoritesList, readingList],
 	data() {
 		return {
-			comicDialog: false,
 			characterImgURL: "",
+			comicDialog: false,
 			dialogData: {
 				imageURL: "",
 				title: "",
@@ -169,17 +169,17 @@ export default {
 	},
 	computed: {
 		...mapState({
-			readingList: state => state.readingList,
-			favoriteCharacters: state => state.favoriteCharacters
+			favoriteCharacters: state => state.favoriteCharacters,
+			readingList: state => state.readingList
 		})
 	},
 	methods: {
+		eraseCharacterData() {
+			this.characterImgURL = ""
+		},
 		async getCharacterData(character) {
 			const characterData = await this.apiCall(character.resourceURI)
 			this.characterImgURL = `${characterData.data.results[0].thumbnail.path}.${characterData.data.results[0].thumbnail.extension}`
-		},
-		eraseCharacterData() {
-			this.characterImgURL = ""
 		},
 		openComicDialog(comic) {
 			this.dialogData = {
@@ -190,20 +190,7 @@ export default {
 				characters: comic.characters.items
 			}
 			this.comicDialog = true
-		},
-		addRemoveCharacterToFavorites(character) {
-			this.$store.dispatch("updateFavoriteCharactersList", character)
-		},
-		isFavorite(character) {
-			return _.find(this.favoriteCharacters, character) === undefined ? "" : "#ed161f"
-		},
-		isOnReadingList(comic) {
-			return _.findIndex(this.readingList, item => item.title === comic.name) === -1 ? "" : "#ed161f"
 		}
 	}
 }
 </script>
-
-<style>
-
-</style>

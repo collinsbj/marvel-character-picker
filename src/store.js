@@ -1,7 +1,7 @@
-import Vue from "vue"
-import Vuex from "vuex"
 import _ from "lodash"
 import { apiCall } from "@/mixins.js"
+import Vue from "vue"
+import Vuex from "vuex"
 
 Vue.use(Vuex)
 
@@ -9,18 +9,24 @@ export default new Vuex.Store({
 	state: {
 		allCharacters: [],
 		favoriteCharacters: [],
-		readingList: [],
-		offset: 0
+		offset: 0,
+		readingList: []
 	},
 	mutations: {
-		addToAllCharacters(state, payload) {
+		addToAllCharactersList(state, payload) {
 			state.allCharacters = state.allCharacters.concat(payload)
 		},
-		updateAllCharacters(state, payload) {
+		addToReadingList(state, payload) {
+			state.readingList.push(payload)
+		},
+		removeFromReadingList(state, payload) {
+			state.readingList.splice(_.findIndex(state.readingList, payload), 1)
+		},
+		replaceAllCharactersList(state, payload) {
 			state.allCharacters = payload
 		},
-		updateOffset(state, payload) {
-			state.offset += payload
+		replaceFavoriteCharactersList(state, payload) {
+			state.favoriteCharacters = payload
 		},
 		updateFavoriteCharactersList(state, payload) {
 			if (_.find(state.favoriteCharacters, payload) === undefined) {
@@ -35,17 +41,29 @@ export default new Vuex.Store({
 				})
 			}
 		},
-		removeFromReadingList(state, payload) {
-			state.readingList.splice(_.findIndex(state.readingList, payload), 1)
-		},
-		addToReadingList(state, payload) {
-			state.readingList.push(payload)
-		},
-		updateFavoriteCharacters(state, payload) {
-			state.favoriteCharacters = payload
+		updateOffset(state, payload) {
+			state.offset += payload
 		}
 	},
 	actions: {
+		addToAllCharactersList({ commit }, payload) {
+			commit("addToAllCharactersList", payload)
+		},
+		replaceAllCharactersList({ commit }, payload) {
+			commit("replaceAllCharactersList", payload)
+		},
+		async updateFavoriteCharactersList({ commit }, payload) {
+			if (payload.id === undefined) {
+				let characterData = await apiCall.methods.apiCall(payload.resourceURI)
+				characterData = characterData.data.results[0]
+				commit("updateFavoriteCharactersList", characterData)
+			} else {
+				commit("updateFavoriteCharactersList", payload)
+			}
+		},
+		updateOffset({ commit }, payload) {
+			commit("updateOffset", payload)
+		},
 		updateRanks({ commit, state }, payload) {
 			let newRanks = []
 			if (payload.oldRank > payload.newRank) {
@@ -67,25 +85,7 @@ export default new Vuex.Store({
 					return character
 				})
 			}
-			commit("updateFavoriteCharacters", newRanks)
-		},
-		addToAllCharacters({ commit }, payload) {
-			commit("addToAllCharacters", payload)
-		},
-		updateAllCharacters({ commit }, payload) {
-			commit("updateAllCharacters", payload)
-		},
-		updateOffset({ commit }, payload) {
-			commit("updateOffset", payload)
-		},
-		async updateFavoriteCharactersList({ commit }, payload) {
-			if (payload.id === undefined) {
-				let characterData = await apiCall.methods.apiCall(payload.resourceURI)
-				characterData = characterData.data.results[0]
-				commit("updateFavoriteCharactersList", characterData)
-			} else {
-				commit("updateFavoriteCharactersList", payload)
-			}
+			commit("replaceFavoriteCharactersList", newRanks)
 		},
 		async updateReadingList({ commit, state }, payload) {
 			let comicData = await apiCall.methods.apiCall(payload.resourceURI)

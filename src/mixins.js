@@ -17,3 +17,25 @@ export const apiCall = {
 		}
 	}
 }
+
+export const favoritesList = {
+	methods: {
+		addRemoveCharacterToFavorites(character) {
+			this.$store.dispatch("updateFavoriteCharactersList", character)
+		},
+		isFavorite(character) {
+			return _.find(this.favoriteCharacters, character) === undefined ? "" : "#ed161f"
+		}
+	}
+}
+
+export const readingList = {
+	methods: {
+		addRemoveFromReadingList(comic) {
+			this.$store.dispatch("updateReadingList", comic)
+		},
+		isOnReadingList(comic) {
+			return _.findIndex(this.readingList, item => item.title === comic.name) === -1 ? "" : "#ed161f"
+		}
+	}
+}

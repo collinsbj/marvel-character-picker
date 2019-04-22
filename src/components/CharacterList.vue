@@ -2,8 +2,8 @@
 	<div>
 		<v-container v-if="listType === 'favorites' && favoriteCharacters.length === 0">
 			<v-layout
-				column
 				align-center
+				column
 				text-sm-center
 			>
 				You don't currently have any favorite Marvel characters...<br>
@@ -15,9 +15,9 @@
 			v-if="!loading"
 		>
 			<v-select
-				v-if="listType === 'favorites' && favoriteCharacters.length !== 0"
 				label="Sort By"
 				:items="['Name', 'Rank', 'Appearances']"
+				v-if="listType === 'favorites' && favoriteCharacters.length !== 0"
 				v-model="sortingMethod"
 			/>
 			<v-layout
@@ -25,17 +25,17 @@
 				wrap
 			>
 				<v-flex
-					sm4
-					xs12
-					v-for="character in charactersDisplay"
 					:key="character.name"
+					sm4
+					v-for="character in charactersDisplay"
+					xs12
 				>
 					<v-hover>
 						<v-card
-							slot-scope="{ hover }"
-							max-height="500px"
-							style="overflow: hidden"
 							:class="`elevation-${hover ? 12 : 2}`"
+							max-height="500px"
+							slot-scope="{ hover }"
+							style="overflow: hidden"
 						>
 							<div @click="openCharacterDataDialog(character)">
 								<v-img
@@ -44,8 +44,8 @@
 								/>
 
 								<div
-									v-if="hover"
 									style="background-color: rgba(237,22,31, .4); top: 0; left: 0; position: absolute; height: 250px; width: 100%;"
+									v-if="hover"
 								/>
 								<v-card-text
 									class="title"
@@ -59,21 +59,21 @@
 							</div>
 							<v-card-actions>
 								<v-select
+									box
+									@change="rankChange(character,$event)"
+									label="Rank"
+									:items="numberOfFavoriteCharacters"
+									style="width: 1px;"
 									:value="character.rank"
 									v-if="listType === 'favorites'"
-									:items="numberOfFavoriteCharacters"
-									box
-									label="Rank"
-									style="width: 1px;"
-									@change="rankChange(character,$event)"
 								/>
 								<v-spacer />
 								<v-tooltip top>
 									<template v-slot:activator="{ on }">
 										<v-btn
-											v-on="on"
-											icon
 											@click.stop="addRemoveCharacterToFavorites(character)"
+											icon
+											v-on="on"
 										>
 											<v-icon :color="isFavorite(character)">
 												star
@@ -95,8 +95,8 @@
 		/>
 		<v-container v-if="(loading || viewHandlerLoading) && listType === 'all'">
 			<v-layout
-				column
 				align-center
+				column
 			>
 				Loading characters...
 				<v-progress-linear
@@ -109,9 +109,9 @@
 			<v-card>
 				<v-card-title class="display-1">
 					<v-img
+						contain
 						max-height="80px"
 						max-width="80px"
-						contain
 						position="left"
 						:src="dialogData.imageURL"
 					/>
@@ -120,8 +120,8 @@
 					</span>
 					<v-spacer />
 					<v-btn
-						icon
 						@click="characterDataDialog = false"
+						icon
 					>
 						<v-icon>close</v-icon>
 					</v-btn>
@@ -135,16 +135,16 @@
 					<v-list>
 						<v-tooltip
 							allow-overflow
+							:key="comic.name"
 							top
 							v-for="comic in dialogData.comicData.items"
-							:key="comic.name"
 						>
 							<template v-slot:activator="{ on }">
 								<v-list-tile
+									@click=""
 									@mouseenter="getComicData(comic)"
 									@mouseleave="eraseComicData"
 									v-on="on"
-									@click=""
 								>
 									<v-list-tile-title>
 										{{ comic.name }}
@@ -153,9 +153,9 @@
 										<v-tooltip top>
 											<template v-slot:activator="{ on }">
 												<v-btn
+													@click="addRemoveFromReadingList(comic)"
 													icon
 													v-on="on"
-													@click="addRemoveFromReadingList(comic)"
 												>
 													<v-icon :color="isOnReadingList(comic)">
 														list
@@ -168,13 +168,13 @@
 								</v-list-tile>
 							</template>
 							<v-progress-circular
-								v-if="comicImgURL === ''"
 								:indeterminate="true"
+								v-if="comicImgURL === ''"
 							/>
 							<img
-								v-else
-								style="max-height: 150px; max-width: 150px;"
 								:src="comicImgURL"
+								style="max-height: 150px; max-width: 150px;"
+								v-else
 							>
 						</v-tooltip>
 					</v-list>
@@ -185,19 +185,16 @@
 </template>
 
 <script>
-import { mapState } from "vuex"
-import { apiCall } from "@/mixins.js"
 import _ from "lodash"
+import { apiCall, favoritesList, readingList } from "@/mixins.js"
+import { mapState } from "vuex"
 
 export default {
 	name: "CharacterList",
 	props: ["listType"],
-	mixins: [apiCall],
+	mixins: [apiCall, favoritesList, readingList],
 	data() {
 		return {
-			sortingMethod: "Rank",
-			loading: true,
-			viewHandlerLoading: true,
 			characterDataDialog: false,
 			comicImgURL: "",
 			dialogData: {
@@ -208,14 +205,17 @@ export default {
 					available: 0,
 					items: []
 				}
-			}
+			},
+			loading: true,
+			sortingMethod: "Rank",
+			viewHandlerLoading: true
 		}
 	},
 	async created() {
 		this.loading = true
 		if (this.allCharacters.length === 0) {
 			const characters = await this.apiCall("http://gateway.marvel.com/v1/public/characters")
-			this.$store.dispatch("updateAllCharacters", characters.data.results)
+			this.$store.dispatch("replaceAllCharactersList", characters.data.results)
 			this.$store.dispatch("updateOffset", characters.data.count)
 		}
 		this.loading = false
@@ -228,20 +228,8 @@ export default {
 			readingList: state => state.readingList,
 			offset: state => state.offset
 		}),
-		charactersDisplay() {
-			if (this.listType === "favorites") {
-				if (this.sortingMethod === "Rank") {
-					return this.charactersByRank
-				} if (this.sortingMethod === "Name") {
-					return this.charactersByName
-				} if (this.sortingMethod === "Appearances") {
-					return this.charactersByAppearances
-				}
-			}
-			return this.allCharacters
-		},
-		numberOfFavoriteCharacters() {
-			return this.favoriteCharacters.map((item, index) => index + 1)
+		charactersByAppearances() {
+			return this.favoriteCharacters.sort((a, b) => a.comics.available + b.comics.available)
 		},
 		charactersByName() {
 			return this.favoriteCharacters.sort((a, b) => {
@@ -260,31 +248,29 @@ export default {
 		charactersByRank() {
 			return this.favoriteCharacters.sort((a, b) => a.rank - b.rank)
 		},
-		charactersByAppearances() {
-			return this.favoriteCharacters.sort((a, b) => a.comics.available + b.comics.available)
+		charactersDisplay() {
+			if (this.listType === "favorites") {
+				if (this.sortingMethod === "Rank") {
+					return this.charactersByRank
+				} if (this.sortingMethod === "Name") {
+					return this.charactersByName
+				} if (this.sortingMethod === "Appearances") {
+					return this.charactersByAppearances
+				}
+			}
+			return this.allCharacters
+		},
+		numberOfFavoriteCharacters() {
+			return this.favoriteCharacters.map((item, index) => index + 1)
 		}
 	},
 	methods: {
-		rankChange(character, newRank) {
-			if (character.rank !== newRank) {
-				this.$store.dispatch("updateRanks", { characterName: character.name, oldRank: character.rank, newRank })
-			}
+		eraseComicData() {
+			this.comicImgURL = ""
 		},
 		async getComicData(comic) {
 			const comicData = await this.apiCall(comic.resourceURI)
 			this.comicImgURL = `${comicData.data.results[0].thumbnail.path}.${comicData.data.results[0].thumbnail.extension}`
-		},
-		eraseComicData() {
-			this.comicImgURL = ""
-		},
-		async viewHandler(event) {
-			if ((event.type === "progress" || event.type === "enter") && event.percentInView > 0 && event.scrollValue > 0) {
-				this.viewHandlerLoading = true
-				const characters = await this.apiCall("http://gateway.marvel.com/v1/public/characters", this.offset)
-				await this.$store.dispatch("addToAllCharacters", characters.data.results)
-				await this.$store.dispatch("updateOffset", characters.data.count)
-				this.viewHandlerLoading = false
-			}
 		},
 		openCharacterDataDialog(character) {
 			this.dialogData = {
@@ -298,17 +284,19 @@ export default {
 			}
 			this.characterDataDialog = true
 		},
-		addRemoveCharacterToFavorites(character) {
-			this.$store.dispatch("updateFavoriteCharactersList", character)
+		rankChange(character, newRank) {
+			if (character.rank !== newRank) {
+				this.$store.dispatch("updateRanks", { characterName: character.name, oldRank: character.rank, newRank })
+			}
 		},
-		isFavorite(character) {
-			return _.find(this.favoriteCharacters, character) === undefined ? "" : "#ed161f"
-		},
-		isOnReadingList(comic) {
-			return _.findIndex(this.readingList, item => item.title === comic.name) === -1 ? "" : "#ed161f"
-		},
-		addRemoveFromReadingList(comic) {
-			this.$store.dispatch("updateReadingList", comic)
+		async viewHandler(event) {
+			if ((event.type === "progress" || event.type === "enter") && event.percentInView > 0 && event.scrollValue > 0) {
+				this.viewHandlerLoading = true
+				const characters = await this.apiCall("http://gateway.marvel.com/v1/public/characters", this.offset)
+				await this.$store.dispatch("addToAllCharactersList", characters.data.results)
+				await this.$store.dispatch("updateOffset", characters.data.count)
+				this.viewHandlerLoading = false
+			}
 		}
 	}
 }
