@@ -178,7 +178,7 @@ export default {
 			this.characterImgURL = ""
 		},
 		async getCharacterData(character) {
-			const characterData = await this.apiCall(character.resourceURI)
+			const characterData = await this.apiCall(character.resourceURI.replace("http:", "https:"))
 			this.characterImgURL = `${characterData.data.results[0].thumbnail.path}.${characterData.data.results[0].thumbnail.extension}`
 		},
 		openComicDialog(comic) {

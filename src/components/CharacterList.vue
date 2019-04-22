@@ -214,7 +214,7 @@ export default {
 	async created() {
 		this.loading = true
 		if (this.allCharacters.length === 0) {
-			const characters = await this.apiCall("http://gateway.marvel.com/v1/public/characters")
+			const characters = await this.apiCall("https://gateway.marvel.com/v1/public/characters")
 			this.$store.dispatch("replaceAllCharactersList", characters.data.results)
 			this.$store.dispatch("updateOffset", characters.data.count)
 		}
@@ -269,7 +269,7 @@ export default {
 			this.comicImgURL = ""
 		},
 		async getComicData(comic) {
-			const comicData = await this.apiCall(comic.resourceURI)
+			const comicData = await this.apiCall(comic.resourceURI.replace("http:", "https:"))
 			this.comicImgURL = `${comicData.data.results[0].thumbnail.path}.${comicData.data.results[0].thumbnail.extension}`
 		},
 		openCharacterDataDialog(character) {
@@ -292,7 +292,7 @@ export default {
 		async viewHandler(event) {
 			if ((event.type === "progress" || event.type === "enter") && event.percentInView > 0 && event.scrollValue > 0) {
 				this.viewHandlerLoading = true
-				const characters = await this.apiCall("http://gateway.marvel.com/v1/public/characters", this.offset)
+				const characters = await this.apiCall("https://gateway.marvel.com/v1/public/characters", this.offset)
 				await this.$store.dispatch("addToAllCharactersList", characters.data.results)
 				await this.$store.dispatch("updateOffset", characters.data.count)
 				this.viewHandlerLoading = false

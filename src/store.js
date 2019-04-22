@@ -54,7 +54,7 @@ export default new Vuex.Store({
 		},
 		async updateFavoriteCharactersList({ commit }, payload) {
 			if (payload.id === undefined) {
-				let characterData = await apiCall.methods.apiCall(payload.resourceURI)
+				let characterData = await apiCall.methods.apiCall(payload.resourceURI.replace("http:", "https:"))
 				characterData = characterData.data.results[0]
 				commit("updateFavoriteCharactersList", characterData)
 			} else {
@@ -88,7 +88,7 @@ export default new Vuex.Store({
 			commit("replaceFavoriteCharactersList", newRanks)
 		},
 		async updateReadingList({ commit, state }, payload) {
-			let comicData = await apiCall.methods.apiCall(payload.resourceURI)
+			let comicData = await apiCall.methods.apiCall(payload.resourceURI.replace("http:", "https:"))
 			comicData = comicData.data.results[0]
 			if (_.find(state.readingList, comicData) === undefined) {
 				commit("addToReadingList", comicData)
